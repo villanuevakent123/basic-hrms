@@ -1,25 +1,30 @@
-// =====================
-// DATA STORAGE
-// =====================
+// ==============================================
+// HRMS — FINAL FIXED VERSION
+// Default Admin: admin / admin123
+// ==============================================
+
 const STORAGE = {
     employees: JSON.parse(localStorage.getItem('hrms_emp') || '[]'),
     attendance: JSON.parse(localStorage.getItem('hrms_att') || '[]'),
     leave: JSON.parse(localStorage.getItem('hrms_leave') || '[]'),
     accounts: JSON.parse(localStorage.getItem('hrms_accounts') || '[]'),
 
-    initDefaultAdmin() {
-        if (!this.accounts.some(a => a.role === 'admin')) {
-            this.accounts.push({
+    ensureDefaultAdmin() {
+        // Always ensure default admin exists
+        const hasAdmin = this.accounts.some(a => a.role === 'admin');
+        if (!hasAdmin) {
+            this.accounts.unshift({
                 username: 'admin',
                 password: 'admin123',
                 role: 'admin',
                 linkedEmpId: null
             });
-            console.log('✅ Default admin created: admin / admin123');
+            console.log('✅ Default admin created');
         }
     },
 
     resetAdmin() {
+        // Remove all existing admins & add default
         this.accounts = this.accounts.filter(a => a.role !== 'admin');
         this.accounts.unshift({
             username: 'admin',
@@ -28,8 +33,8 @@ const STORAGE = {
             linkedEmpId: null
         });
         this.save();
-        alert('✅ Admin reset! Username: admin | Password: admin123');
-        location.reload();
+        alert('✅ Admin RESET!\n\nUsername: admin\nPassword: admin123');
+        location.reload(true);
     },
 
     save() {
@@ -37,13 +42,14 @@ const STORAGE = {
         localStorage.setItem('hrms_att', JSON.stringify(this.attendance));
         localStorage.setItem('hrms_leave', JSON.stringify(this.leave));
         localStorage.setItem('hrms_accounts', JSON.stringify(this.accounts));
+        console.log('💾 Data saved');
     }
 };
-STORAGE.initDefaultAdmin();
 
-// =====================
-// CURRENT SESSION
-// =====================
+// Force default admin on every load
+STORAGE.ensureDefaultAdmin();
+
+// Session
 const SESSION = {
     currentUser: null,
     isAdmin() { return this.currentUser?.role === 'admin'; },
@@ -51,11 +57,17 @@ const SESSION = {
     set(user) {
         this.currentUser = user;
         sessionStorage.setItem('hrms_session', JSON.stringify(user));
+        console.log('✅ Session started:', user.username, user.role);
     },
     restore() {
-        const data = sessionStorage.getItem('hrms_session');
-        if (data) this.currentUser = JSON.parse(data);
-        return !!this.currentUser;
+        try {
+            const data = sessionStorage.getItem('hrms_session');
+            if (data) {
+                this.currentUser = JSON.parse(data);
+                return true;
+            }
+        } catch (e) { console.log('⚠️ Session restore failed'); }
+        return false;
     },
     clear() {
         this.currentUser = null;
@@ -63,11 +75,9 @@ const SESSION = {
     }
 };
 
-// =====================
-// PH PAYROLL CONSTANTS
-// =====================
+// PH Rates
 const PH_RATES = {
-    sss: { ee: 0.045, er: 0.075, threshold: 30000 },
+    sss: { ee: 0.045, threshold: 30000 },
     philhealth: { rate: 0.05, share: 0.5 },
     pagibig: { max: 200, rate: 0.02 },
     taxBrackets: [
@@ -81,9 +91,6 @@ const PH_RATES = {
     ]
 };
 
-// =====================
-// HELPERS
-// =====================
 function formatDate(d = new Date()) { return d.toISOString().split('T')[0]; }
 function formatTime(d = new Date()) { return d.toLocaleTimeString('en-PH', {hour:'2-digit', minute:'2-digit'}); }
 function currency(amt) { return new Intl.NumberFormat('en-PH', {style:'currency', currency:'PHP'}).format(amt); }
@@ -92,15 +99,9 @@ function escapeHtml(str) { return String(str).replace(/[&<>"']/g, c => ({'&':'&a
 function computePayroll(basic, daysWorked = 22) {
     const dailyRate = basic / 22;
     const taxable = basic;
-
-    const sssBase = Math.min(basic, PH_RATES.sss.threshold);
-    const sssEE = sssBase * PH_RATES.sss.ee;
-
-    const philPrem = taxable * PH_RATES.philhealth.rate;
-    const philEE = philPrem * PH_RATES.philhealth.share;
-
+    const sssEE = Math.min(basic, PH_RATES.sss.threshold) * PH_RATES.sss.ee;
+    const philEE = (taxable * PH_RATES.philhealth.rate) * PH_RATES.philhealth.share;
     const pagEE = Math.min(basic * PH_RATES.pagibig.rate, PH_RATES.pagibig.max);
-
     let tax = 0;
     for (const b of PH_RATES.taxBrackets) {
         if (taxable > b.min && taxable <= b.max) {
@@ -108,24 +109,16 @@ function computePayroll(basic, daysWorked = 22) {
             break;
         }
     }
-
     const totalDed = sssEE + philEE + pagEE + tax;
-    return {
-        basic, dailyRate, daysWorked,
-        sssEE, philEE, pagEE, withholdingTax: tax,
-        totalDeductions: totalDed, netPay: basic - totalDed
-    };
+    return { basic, dailyRate, daysWorked, sssEE, philEE, pagEE, withholdingTax: tax, totalDeductions: totalDed, netPay: basic - totalDed };
 }
 
-// =====================
-// LOGIN & SESSION
-// =====================
+// Show/Hide Screens
 function showLogin() {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-container').style.display = 'none';
     document.body.classList.remove('is-admin');
 }
-
 function showApp() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-container').style.display = 'flex';
@@ -141,22 +134,32 @@ function showApp() {
     renderAll();
 }
 
+// LOGIN HANDLER — CLEAR & SIMPLE
 document.getElementById('login-form').addEventListener('submit', e => {
     e.preventDefault();
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
 
-    console.log('Attempting login:', username);
-    console.log('Available accounts:', STORAGE.accounts);
+    console.log('🔐 Login attempt:', username);
+    console.log('📋 Accounts in system:', STORAGE.accounts);
 
-    const user = STORAGE.accounts.find(a => a.username === username && a.password === password);
+    const user = STORAGE.accounts.find(a =>
+        a.username === username && a.password === password
+    );
+
     if (user) {
+        console.log('✅ Login SUCCESS:', user);
         SESSION.set(user);
         showApp();
     } else {
-        alert('❌ Invalid username or password\n\nTip: Click "Reset Admin Account" below if locked out.');
+        alert('❌ Login FAILED!\n\nUsername or password incorrect.\n\nClick "🔧 Reset Admin Account" below to reset to:\nUsername: admin\nPassword: admin123');
     }
-    e.target.reset();
+});
+
+document.getElementById('reset-admin-btn').addEventListener('click', () => {
+    if (confirm('Reset admin account to:\n\nUsername: admin\nPassword: admin123\n\nThis will NOT delete your employees.')) {
+        STORAGE.resetAdmin();
+    }
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
@@ -164,37 +167,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
     showLogin();
 });
 
-document.getElementById('create-admin-btn').addEventListener('click', () => {
-    if (STORAGE.accounts.some(a => a.role === 'admin')) {
-        alert('⚠️ Admin account already exists — use "Reset Admin Account" instead.');
-        return;
-    }
-    const user = prompt('Set Admin Username:');
-    if (!user) return;
-    const pass = prompt('Set Admin Password:');
-    if (!pass) return;
-    STORAGE.accounts.push({ username: user.trim(), password: pass, role: 'admin', linkedEmpId: null });
-    STORAGE.save();
-    alert('✅ Admin created! Please sign in.');
-});
-
-// NEW: Reset Admin Button
-document.addEventListener('DOMContentLoaded', () => {
-    const resetBtn = document.createElement('button');
-    resetBtn.className = 'btn secondary full-width';
-    resetBtn.style.marginTop = '8px';
-    resetBtn.textContent = '🔧 Reset Admin Account';
-    resetBtn.onclick = () => {
-        if (confirm('Reset admin to: admin / admin123?')) {
-            STORAGE.resetAdmin();
-        }
-    };
-    document.querySelector('.login-hint').appendChild(resetBtn);
-});
-
-// =====================
-// NAVIGATION
-// =====================
+// Navigation
 document.querySelectorAll('.nav-link').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
@@ -205,9 +178,7 @@ document.querySelectorAll('.nav-link').forEach(btn => {
     });
 });
 
-// =====================
-// DASHBOARD
-// =====================
+// Dashboard
 function renderDashboard() {
     document.getElementById('total-employees').textContent = STORAGE.employees.length;
     document.getElementById('active-employees').textContent = STORAGE.employees.filter(e => e.status === 'Active').length;
@@ -215,9 +186,7 @@ function renderDashboard() {
     document.getElementById('payroll-month').textContent = new Date().toLocaleDateString('en-PH', {month:'long', year:'numeric'});
 }
 
-// =====================
-// EMPLOYEE MANAGEMENT
-// =====================
+// Employees
 function renderEmpTable() {
     const tbody = document.getElementById('emp-table-body');
     tbody.innerHTML = '';
@@ -260,9 +229,7 @@ function editEmp(idx) {
     document.getElementById('emp-salary').value = emp.salary;
     document.getElementById('emp-status').value = emp.status;
 }
-document.querySelector('.close-btn').addEventListener('click', () => {
-    document.getElementById('emp-modal').style.display = 'none';
-});
+document.querySelector('.close-btn').onclick = () => document.getElementById('emp-modal').style.display = 'none';
 document.getElementById('add-emp-btn')?.addEventListener('click', openEmpModal);
 document.getElementById('emp-form').addEventListener('submit', e => {
     e.preventDefault();
@@ -281,20 +248,17 @@ document.getElementById('emp-form').addEventListener('submit', e => {
     renderEmpTable(); updateSelects(); renderDashboard();
 });
 
-// =====================
-// DROPDOWN UPDATES
-// =====================
+// Dropdowns
 function updateSelects() {
-    const empOpts = STORAGE.employees.map(e => `<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`).join('');
+    const opts = STORAGE.employees.map(e => `<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`).join('');
     ['att-emp-select','leave-emp','payroll-emp','link-emp-id'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const extra = id === 'link-emp-id' ? '<option value="">— Not Linked —</option>' : '<option value="">Select Employee</option>';
-        sel.innerHTML = extra + empOpts;
+        sel.innerHTML = extra + opts;
     });
     if (!SESSION.isAdmin()) {
-        const empId = SESSION.getLinkedEmpId();
-        const emp = STORAGE.employees.find(e => e.id === empId);
+        const emp = STORAGE.employees.find(e => e.id === SESSION.getLinkedEmpId());
         if (emp) {
             const nameField = document.getElementById('leave-emp-name-display');
             if (nameField) nameField.value = emp.name;
@@ -302,59 +266,40 @@ function updateSelects() {
     }
 }
 
-// =====================
-// ATTENDANCE
-// =====================
+// Attendance
 function renderAttendance() {
     const tbody = document.getElementById('att-table-body');
     let records = STORAGE.attendance.slice();
-    if (!SESSION.isAdmin()) {
-        records = records.filter(r => r.empId === SESSION.getLinkedEmpId());
-    }
+    if (!SESSION.isAdmin()) records = records.filter(r => r.empId === SESSION.getLinkedEmpId());
     tbody.innerHTML = '';
     records.reverse().forEach(r => {
         const emp = STORAGE.employees.find(e => e.id === r.empId);
         const hours = r.timeOut ? ((new Date(`${r.date}T${r.timeOut}`) - new Date(`${r.date}T${r.timeIn}`)) / 3600000).toFixed(2) : '—';
-        tbody.innerHTML += `
-            <tr>
-                <td>${escapeHtml(r.date)}</td>
-                <td>${escapeHtml(emp?.name || 'Unknown')}</td>
-                <td>${escapeHtml(r.timeIn)}</td>
-                <td>${escapeHtml(r.timeOut || '—')}</td>
-                <td>${hours}</td>
-            </tr>`;
+        tbody.innerHTML += `<tr><td>${escapeHtml(r.date)}</td><td>${escapeHtml(emp?.name || 'Unknown')}</td><td>${escapeHtml(r.timeIn)}</td><td>${escapeHtml(r.timeOut || '—')}</td><td>${hours}</td></tr>`;
     });
 }
 document.getElementById('time-in-btn')?.addEventListener('click', () => {
-    const empId = SESSION.isAdmin()
-        ? document.getElementById('att-emp-select').value
-        : SESSION.getLinkedEmpId();
-    if (!empId) return alert('Select employee or link your account first');
+    const empId = SESSION.isAdmin() ? document.getElementById('att-emp-select').value : SESSION.getLinkedEmpId();
+    if (!empId) return alert('Select employee or link account first');
     STORAGE.attendance.push({ empId, date: formatDate(), timeIn: formatTime() });
     STORAGE.save(); renderAttendance();
 });
 document.getElementById('time-out-btn')?.addEventListener('click', () => {
-    const empId = SESSION.isAdmin()
-        ? document.getElementById('att-emp-select').value
-        : SESSION.getLinkedEmpId();
-    if (!empId) return alert('Select employee or link your account first');
+    const empId = SESSION.isAdmin() ? document.getElementById('att-emp-select').value : SESSION.getLinkedEmpId();
+    if (!empId) return alert('Select employee or link account first');
     const rec = STORAGE.attendance.filter(r => r.empId === empId && r.date === formatDate() && !r.timeOut).pop();
     if (!rec) return alert('No active Time In found');
     rec.timeOut = formatTime();
     STORAGE.save(); renderAttendance();
 });
 
-// =====================
-// LEAVE
-// =====================
+// Leave
 function renderLeave() {
     const tbody = document.getElementById('leave-table-body');
     let records = STORAGE.leave.slice();
-    if (!SESSION.isAdmin()) {
-        records = records.filter(r => r.empId === SESSION.getLinkedEmpId());
-    }
+    if (!SESSION.isAdmin()) records = records.filter(r => r.empId === SESSION.getLinkedEmpId());
     tbody.innerHTML = '';
-    records.forEach((lv, idx) => {
+    records.forEach((lv) => {
         const emp = STORAGE.employees.find(e => e.id === lv.empId);
         const realIdx = STORAGE.leave.indexOf(lv);
         tbody.innerHTML += `
@@ -382,48 +327,39 @@ function renderLeave() {
 }
 document.getElementById('leave-form').addEventListener('submit', e => {
     e.preventDefault();
-    const empId = SESSION.isAdmin()
-        ? document.getElementById('leave-emp').value
-        : SESSION.getLinkedEmpId();
-    if (!empId) return alert('Cannot determine employee — account not linked');
+    const empId = SESSION.isAdmin() ? document.getElementById('leave-emp').value : SESSION.getLinkedEmpId();
+    if (!empId) return alert('Employee not linked to this account');
     STORAGE.leave.push({
-        empId,
-        type: document.getElementById('leave-type').value,
+        empId, type: document.getElementById('leave-type').value,
         start: document.getElementById('leave-start').value,
         end: document.getElementById('leave-end').value,
         status: 'Pending'
     });
-    STORAGE.save();
-    e.target.reset();
-    renderLeave(); renderDashboard();
-    alert('✅ Leave request submitted — waiting for approval');
+    STORAGE.save(); e.target.reset(); renderLeave(); renderDashboard();
+    alert('✅ Leave request submitted');
 });
 
-// =====================
-// PAYROLL
-// =====================
+// Payroll
 function showPayslip(emp, payPeriod) {
-    const result = computePayroll(emp.salary, 22);
+    const res = computePayroll(emp.salary, 22);
     const slip = document.getElementById('payslip-result');
     slip.style.display = 'block';
     slip.innerHTML = `
         <h3>Payslip — ${escapeHtml(payPeriod)}</h3>
         <p><strong>Employee:</strong> ${escapeHtml(emp.name)} (${escapeHtml(emp.id)}) — ${escapeHtml(emp.position)}</p>
         <hr style="border:0; border-top:1px solid #334155; margin:12px 0;">
-        <div class="row"><span>Basic Monthly Salary</span><span>${currency(result.basic)}</span></div>
-        <div class="row"><span>Daily Rate</span><span>${currency(result.dailyRate)}</span></div>
-        <div class="row"><span>Days Worked</span><span>${result.daysWorked}</span></div>
+        <div class="row"><span>Basic Monthly Salary</span><span>${currency(res.basic)}</span></div>
+        <div class="row"><span>Daily Rate</span><span>${currency(res.dailyRate)}</span></div>
+        <div class="row"><span>Days Worked</span><span>${res.daysWorked}</span></div>
         <br>
         <h4>Deductions</h4>
-        <div class="row"><span>SSS (Employee Share)</span><span>${currency(result.sssEE)}</span></div>
-        <div class="row"><span>PhilHealth</span><span>${currency(result.philEE)}</span></div>
-        <div class="row"><span>Pag-IBIG</span><span>${currency(result.pagEE)}</span></div>
-        <div class="row"><span>Withholding Tax</span><span>${currency(result.withholdingTax)}</span></div>
-        <div class="row total"><span>Total Deductions</span><span>- ${currency(result.totalDeductions)}</span></div>
-        <div class="row total"><span>NET PAY</span><span style="color:var(--success); font-size:1.3rem;">${currency(result.netPay)}</span></div>
-        <p style="margin-top:16px; font-size:0.85rem; color:var(--muted);">
-            Computed using 2026 PH contribution rates. System-generated document.
-        </p>`;
+        <div class="row"><span>SSS</span><span>${currency(res.sssEE)}</span></div>
+        <div class="row"><span>PhilHealth</span><span>${currency(res.philEE)}</span></div>
+        <div class="row"><span>Pag-IBIG</span><span>${currency(res.pagEE)}</span></div>
+        <div class="row"><span>Withholding Tax</span><span>${currency(res.withholdingTax)}</span></div>
+        <div class="row total"><span>Total Deductions</span><span>- ${currency(res.totalDeductions)}</span></div>
+        <div class="row total"><span>NET PAY</span><span style="color:var(--success); font-size:1.3rem;">${currency(res.netPay)}</span></div>
+        <p style="margin-top:16px; font-size:0.85rem; color:var(--muted);">2026 PH rates — system-generated</p>`;
 }
 document.getElementById('compute-btn')?.addEventListener('click', () => {
     const empId = document.getElementById('payroll-emp').value;
@@ -438,13 +374,11 @@ document.getElementById('emp-view-payslip-btn')?.addEventListener('click', () =>
     const payPeriod = document.getElementById('emp-pay-period').value;
     if (!empId || !payPeriod) return alert('Select pay period');
     const emp = STORAGE.employees.find(e => e.id === empId);
-    if (!emp) return alert('Your employee record was not found');
+    if (!emp) return alert('Employee record not found');
     showPayslip(emp, payPeriod);
 });
 
-// =====================
-// USER ACCOUNTS
-// =====================
+// Accounts
 function renderAccountsTable() {
     const tbody = document.getElementById('accounts-table-body');
     tbody.innerHTML = '';
@@ -484,9 +418,7 @@ function editAccount(idx) {
     document.getElementById('new-role').value = acc.role;
     document.getElementById('link-emp-id').value = acc.linkedEmpId || '';
 }
-document.querySelector('.close-account-btn').addEventListener('click', () => {
-    document.getElementById('account-modal').style.display = 'none';
-});
+document.querySelector('.close-account-btn').onclick = () => document.getElementById('account-modal').style.display = 'none';
 document.getElementById('add-account-btn')?.addEventListener('click', openAccountModal);
 document.getElementById('account-form').addEventListener('submit', e => {
     e.preventDefault();
@@ -496,21 +428,16 @@ document.getElementById('account-form').addEventListener('submit', e => {
     const role = document.getElementById('new-role').value;
     const linkedEmpId = document.getElementById('link-emp-id').value || null;
 
-    if (idx === '' && STORAGE.accounts.some(a => a.username === username)) {
+    if ((idx === '' && STORAGE.accounts.some(a => a.username === username)) ||
+        (idx !== '' && STORAGE.accounts.some((a, i) => i !== parseInt(idx) && a.username === username))) {
         return alert('❌ Username already exists');
     }
-    if (idx !== '' && STORAGE.accounts.some((a, i) => i !== parseInt(idx) && a.username === username)) {
-        return alert('❌ Username already taken');
-    }
-
     const accData = {
         username,
         password: password || (idx !== '' ? STORAGE.accounts[parseInt(idx)].password : ''),
-        role,
-        linkedEmpId
+        role, linkedEmpId
     };
     if (!accData.password) return alert('❌ Password is required');
-
     if (idx === '') STORAGE.accounts.push(accData);
     else STORAGE.accounts[parseInt(idx)] = accData;
     STORAGE.save();
@@ -518,9 +445,7 @@ document.getElementById('account-form').addEventListener('submit', e => {
     renderAccountsTable();
 });
 
-// =====================
-// EXPORT REPORTS
-// =====================
+// Export
 function toCSV(rows) {
     return rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
 }
@@ -545,9 +470,7 @@ document.getElementById('export-att')?.addEventListener('click', () => {
     downloadCSV(toCSV(rows), `attendance-${formatDate()}.csv`);
 });
 
-// =====================
-// MASTER RENDER
-// =====================
+// Master Render
 function renderAll() {
     if (!SESSION.currentUser) return;
     renderDashboard();
@@ -557,9 +480,7 @@ function renderAll() {
     renderAccountsTable();
 }
 
-// =====================
-// INITIALIZE
-// =====================
+// INIT
 if (SESSION.restore()) {
     showApp();
 } else {
