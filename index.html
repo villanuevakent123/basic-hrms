@@ -30,13 +30,11 @@
         .btn.sm { padding: 6px 10px; font-size: 0.85rem; width: auto; margin: 4px; }
         .hidden { display: none !important; }
 
-        /* Login */
         .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
         .login-card { background: var(--bg-card); padding: 32px; border-radius: 12px; border: 1px solid var(--border); width: 100%; max-width: 420px; }
         .login-card h1 { text-align: center; margin-bottom: 24px; color: var(--primary); }
         .hint { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center; color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
 
-        /* Layout */
         .app-wrap { display: flex; min-height: 100vh; }
         .sidebar { width: 260px; background: var(--bg-card); padding: 24px 16px; border-right: 1px solid var(--border); height: 100vh; position: fixed; }
         .sidebar h2 { color: var(--primary); margin-bottom: 8px; }
@@ -59,6 +57,10 @@
         .text-right { text-align: right; }
         .divider { border-bottom: 1px dashed var(--border); margin: 10px 0; padding: 10px 0; }
         .total { font-weight: bold; font-size: 1.1rem; }
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: var(--bg-card); padding: 28px; border-radius: 10px; width: 90%; max-width: 450px; border: 1px solid var(--border); }
+        .close-btn { float: right; font-size: 1.5rem; cursor: pointer; color: var(--muted); }
+        .clearfix { clear: both; }
         @media print {
             .sidebar, .no-print { display: none !important; }
             .main { margin-left: 0; }
@@ -67,14 +69,13 @@
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen" class="login-wrap">
     <div class="login-card">
         <h1>🏢 HRMS Login</h1>
         <label>Username</label>
-        <input type="text" id="u" value="admin">
+        <input type="text" id="username" value="admin">
         <label>Password</label>
-        <input type="password" id="p" value="admin123">
+        <input type="password" id="password" value="admin123">
         <button class="btn primary" onclick="dologin()">Sign In</button>
         <div class="hint">
             <strong>Admin Access</strong><br>
@@ -84,11 +85,10 @@
     </div>
 </div>
 
-<!-- MAIN APPLICATION -->
 <div id="app" class="app-wrap hidden">
     <aside class="sidebar">
         <h2>HRMS System</h2>
-        <p style="color:var(--muted); margin-bottom:20px;" id="user-info">Admin</p>
+        <p style="color:var(--muted); margin-bottom:20px;">Admin User</p>
         <nav>
             <button class="nav-btn active" data-page="dashboard">📊 Dashboard</button>
             <button class="nav-btn" data-page="employees">👥 Employees</button>
@@ -99,56 +99,37 @@
     </aside>
 
     <main class="main">
-        <!-- DASHBOARD -->
         <section id="dashboard" class="section active">
             <h1>Dashboard Overview</h1>
             <div class="stats">
-                <div class="stat">
-                    <h3 id="total-emp">0</h3>
-                    <p>Total Employees</p>
-                </div>
-                <div class="stat">
-                    <h3 id="today-att">0</h3>
-                    <p>Time In Today</p>
-                </div>
-                <div class="stat">
-                    <h3 id="month-pay">—</h3>
-                    <p>Payroll Month</p>
-                </div>
+                <div class="stat"><h3 id="total-emp">0</h3><p>Total Employees</p></div>
+                <div class="stat"><h3 id="today-att">0</h3><p>Present Today</p></div>
+                <div class="stat"><h3 id="month-pay">—</h3><p>Payroll Month</p></div>
             </div>
             <div class="card">
                 <h3>System Status ✅</h3>
-                <p style="margin-top:8px;">All data is saved automatically. Works on your office computer without internet.</p>
+                <p style="margin-top:8px;">All data saves automatically. Works offline.</p>
             </div>
         </section>
 
-        <!-- EMPLOYEES -->
         <section id="employees" class="section">
             <h1>Employee Management</h1>
             <button class="btn success" onclick="openEmpModal()">+ Add New Employee</button>
             <div class="card">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Full Name</th>
-                            <th>Position</th>
-                            <th>Monthly Salary (₱)</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>#</th><th>Full Name</th><th>Position</th><th>Monthly Salary (₱)</th><th>Actions</th></tr></thead>
                     <tbody id="emp-table-body"></tbody>
                 </table>
             </div>
-            
-            <!-- Add Employee Modal -->
-            <div id="emp-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;">
-                <div style="background:var(--bg-card);padding:28px;border-radius:10px;width:90%;max-width:450px;border:1px solid var(--border);">
+            <div id="emp-modal" class="modal-bg hidden">
+                <div class="modal">
+                    <span class="close-btn" onclick="closeEmpModal()">&times;</span>
+                    <div class="clearfix"></div>
                     <h3>Add Employee</h3>
                     <label>Full Name</label>
                     <input type="text" id="new-name" placeholder="e.g. Juan Dela Cruz">
                     <label>Position</label>
-                    <input type="text" id="new-pos" placeholder="e.g. Staff / Clerk / Manager">
+                    <input type="text" id="new-pos" placeholder="e.g. Staff">
                     <label>Basic Monthly Salary (₱)</label>
                     <input type="number" id="new-salary" placeholder="e.g. 18000" step="500">
                     <div class="row">
@@ -159,7 +140,6 @@
             </div>
         </section>
 
-        <!-- ATTENDANCE -->
         <section id="attendance" class="section">
             <h1>Attendance Tracking</h1>
             <div class="card">
@@ -174,21 +154,12 @@
             <div class="card">
                 <h3>Attendance Logs</h3>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Employee</th>
-                            <th>Time In</th>
-                            <th>Time Out</th>
-                            <th>Hours</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Date</th><th>Employee</th><th>Time In</th><th>Time Out</th><th>Hours</th></tr></thead>
                     <tbody id="att-table-body"></tbody>
                 </table>
             </div>
         </section>
 
-        <!-- PAYROLL -->
         <section id="payroll" class="section">
             <h1>Payroll & Payslip (PH Rates)</h1>
             <div class="card">
@@ -209,47 +180,33 @@
 </div>
 
 <script>
-// ==============================================
-// DATA STORAGE — SAVES AUTOMATICALLY
-// ==============================================
 function loadData(key, fallback) {
-    try {
-        const d = localStorage.getItem(key);
-        return d ? JSON.parse(d) : fallback;
-    } catch { return fallback; }
+    try { const d = localStorage.getItem(key); return d ? JSON.parse(d) : fallback; }
+    catch { return fallback; }
 }
-function saveData(key, val) {
-    localStorage.setItem(key, JSON.stringify(val));
-}
+function saveData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
 let employees = loadData('hrms_employees', []);
 let attendance = loadData('hrms_attendance', []);
-const ADMIN = { user: 'admin', pass: 'admin123' };
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'admin123';
 
-// ==============================================
-// LOGIN / LOGOUT
-// ==============================================
 function dologin() {
-    const u = document.getElementById('u').value.trim();
-    const p = document.getElementById('p').value;
-    
-    if (u === ADMIN.user && p === ADMIN.pass) {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value;
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
         renderAll();
     } else {
-        alert('❌ Wrong credentials!\n\nUse:\nUsername: admin\nPassword: admin123');
+        alert('❌ Wrong!\nUsername: admin\nPassword: admin123');
     }
 }
-
 function logout() {
     document.getElementById('login-screen').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
 }
 
-// ==============================================
-// NAVIGATION
-// ==============================================
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -259,25 +216,18 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     });
 });
 
-// ==============================================
-// EMPLOYEES
-// ==============================================
 function openEmpModal() {
     document.getElementById('emp-modal').classList.remove('hidden');
     document.getElementById('new-name').value = '';
     document.getElementById('new-pos').value = '';
     document.getElementById('new-salary').value = '';
 }
-function closeEmpModal() {
-    document.getElementById('emp-modal').classList.add('hidden');
-}
+function closeEmpModal() { document.getElementById('emp-modal').classList.add('hidden'); }
 function saveEmployee() {
     const name = document.getElementById('new-name').value.trim();
     const pos = document.getElementById('new-pos').value.trim();
     const sal = parseFloat(document.getElementById('new-salary').value);
-    
-    if (!name || !sal) return alert('Please fill in Name and Salary');
-    
+    if (!name || !sal) return alert('Fill in Name and Salary');
     employees.push({ id: Date.now(), name, position: pos, salary: sal });
     saveData('hrms_employees', employees);
     closeEmpModal();
@@ -287,46 +237,132 @@ function saveEmployee() {
 function deleteEmp(id) {
     if (!confirm('Delete this employee?')) return;
     employees = employees.filter(e => e.id !== id);
+    attendance = attendance.filter(a => a.empId !== id);
     saveData('hrms_employees', employees);
+    saveData('hrms_attendance', attendance);
     renderAll();
 }
 
-// ==============================================
-// ATTENDANCE
-// ==============================================
 function timeIn() {
     const sel = document.getElementById('att-emp-select');
-    if (!sel.value) return alert('Select an employee first');
-    
+    if (!sel.value) return alert('Select employee first');
     const emp = employees.find(e => String(e.id) === sel.value);
     if (!emp) return;
-    
     const today = new Date().toLocaleDateString('en-CA');
     const now = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-    
     const existing = attendance.find(a => a.empId === emp.id && a.date === today && !a.timeOut);
     if (existing) return alert('Already timed in! Do Time Out first.');
-    
     attendance.push({ empId: emp.id, name: emp.name, date: today, timeIn: now, timeOut: null });
     saveData('hrms_attendance', attendance);
     renderAll();
     alert(`✅ Time In: ${emp.name} at ${now}`);
 }
-
 function timeOut() {
     const sel = document.getElementById('att-emp-select');
-    if (!sel.value) return alert('Select an employee first');
-    
+    if (!sel.value) return alert('Select employee first');
     const emp = employees.find(e => String(e.id) === sel.value);
     if (!emp) return;
-    
     const today = new Date().toLocaleDateString('en-CA');
     const now = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-    
     const rec = attendance.find(a => a.empId === emp.id && a.date === today && !a.timeOut);
     if (!rec) return alert('No active Time In found!');
-    
     rec.timeOut = now;
     saveData('hrms_attendance', attendance);
     renderAll();
-    alert(`✅ Time Out: ${emp.name} at ${now}`
+    alert(`✅ Time Out: ${emp.name} at ${now}`);
+}
+
+function computePayroll() {
+    const sel = document.getElementById('pay-emp-select');
+    const month = document.getElementById('pay-period').value;
+    if (!sel.value || !month) return alert('Select employee and pay period');
+    const emp = employees.find(e => String(e.id) === sel.value);
+    if (!emp) return;
+
+    const basic = emp.salary;
+    const sss = Math.min(basic * 0.045, 900);
+    const philhealth = basic * 0.03 / 2;
+    const pagibig = basic <= 1500 ? basic * 0.01 : 150;
+    const taxable = basic - sss - philhealth - pagibig;
+    let tax = 0;
+    if (taxable > 25000) tax = (taxable - 25000) * 0.15;
+    const net = basic - sss - philhealth - pagibig - tax;
+
+    document.getElementById('payslip-content').innerHTML = `
+        <h4 style="margin-bottom:12px;">${emp.name} — ${emp.position}</h4>
+        <p><strong>Pay Period:</strong> ${month}</p>
+        <div class="row" style="margin-top:16px;">
+            <div class="col"><strong>Earnings</strong></div>
+            <div class="col text-right"><strong>Amount</strong></div>
+        </div>
+        <div class="row"><div class="col">Basic Salary</div><div class="col text-right">₱${basic.toFixed(2)}</div></div>
+        <div class="divider"></div>
+        <div class="row"><div class="col"><strong>Deductions</strong></div></div>
+        <div class="row"><div class="col">SSS</div><div class="col text-right">₱${sss.toFixed(2)}</div></div>
+        <div class="row"><div class="col">PhilHealth</div><div class="col text-right">₱${philhealth.toFixed(2)}</div></div>
+                <div class="row"><div class="col">Pag-IBIG</div><div class="col text-right">₱${pagibig.toFixed(2)}</div></div>
+        <div class="row"><div class="col">Withholding Tax</div><div class="col text-right">₱${tax.toFixed(2)}</div></div>
+        <div class="divider"></div>
+        <div class="row total">
+            <div class="col">NET PAY</div>
+            <div class="col text-right">₱${net.toFixed(2)}</div>
+        </div>
+    `;
+    document.getElementById('payslip-result').classList.remove('hidden');
+}
+
+function renderAll() {
+    // Dashboard
+    document.getElementById('total-emp').textContent = employees.length;
+    const today = new Date().toLocaleDateString('en-CA');
+    document.getElementById('today-att').textContent = attendance.filter(a => a.date === today && a.timeOut).length;
+    document.getElementById('month-pay').textContent = new Date().toLocaleString('en-US', {month:'short', year:'numeric'});
+
+    // Employees table
+    const empBody = document.getElementById('emp-table-body');
+    empBody.innerHTML = '';
+    employees.forEach((e, i) => {
+        empBody.innerHTML += `
+            <tr>
+                <td>${i+1}</td>
+                <td>${e.name}</td>
+                <td>${e.position}</td>
+                <td>₱${e.salary.toLocaleString()}</td>
+                <td>
+                    <button class="btn sm danger" onclick="deleteEmp(${e.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    // Dropdowns
+    const opts = employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+    document.getElementById('att-emp-select').innerHTML = opts;
+    document.getElementById('pay-emp-select').innerHTML = opts;
+    document.getElementById('pay-period').value = new Date().toISOString().slice(0,7);
+
+    // Attendance table
+    const attBody = document.getElementById('att-table-body');
+    attBody.innerHTML = '';
+    attendance.forEach(a => {
+        let hours = '';
+        if (a.timeIn && a.timeOut) {
+            const [h1,m1] = a.timeIn.split(':');
+            const [h2,m2] = a.timeOut.split(':');
+            const total = (parseInt(h2)*60 + parseInt(m2) - parseInt(h1)*60 - parseInt(m1)) / 60;
+            hours = total.toFixed(1) + ' hrs';
+        }
+        attBody.innerHTML += `
+            <tr>
+                <td>${a.date}</td>
+                <td>${a.name}</td>
+                <td>${a.timeIn}</td>
+                <td>${a.timeOut || '—'}</td>
+                <td>${hours || 'Ongoing'}</td>
+            </tr>
+        `;
+    });
+}
+</script>
+</body>
+</html>
