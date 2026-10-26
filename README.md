@@ -1,25 +1,26 @@
-# PeopleDesk — Basic HRMS Website
+# Basic HRMS — Philippines Edition
+A lightweight, fully functional Human Resource Management System built with pure HTML, CSS, and JavaScript.
+Data saves automatically in your browser — no database setup needed to start!
 
-A beginner-friendly HRMS front-end built with HTML, CSS, and JavaScript.
+## ✨ Features
+- 📊 **Dashboard** — quick overview of employees, leave status, payroll month
+- 👥 **Employee Management** — add, edit, delete, track status
+- ⏰ **Attendance** — Time In / Time Out logging
+- 📅 **Leave Management** — file requests, approve/reject workflow
+- 💰 **PH Payroll Calculator** — auto-computes SSS, PhilHealth, Pag-IBIG, Withholding Tax (2026 rates)
+- 📈 **Reports** — export to CSV
+- 📱 **Responsive Design** — works on phones, tablets, desktops
+- 💾 **Auto-Save** — all data persists in browser storage
 
-## Features
-- Dashboard summary
-- Employee directory, search, add and remove
-- Sample attendance view
-- Approve/reject sample leave requests
-- Payroll overview and CSV export
-- Responsive layout
-- Saves demo data in browser localStorage
+## 🚀 Quick Start
+1. Download or clone this repo
+2. Open `index.html` in any modern browser
+3. Start adding employees — data saves automatically
 
-## Run locally
-Open `index.html` in a browser.
+## 🧮 Payroll Formula Reference (PH 2026)
+- SSS: 4.5% employee share (capped at ₱30,000 base)
+- PhilHealth: 5% annual premium, split equally EE/ER
+- Pag-IBIG: 2% capped at ₱200/month
+- Withholding Tax: BIR monthly graduated table
 
-## Publish with GitHub Pages
-1. Create a GitHub repository named `basic-hrms`.
-2. Upload `index.html`, `styles.css`, `script.js`, and `README.md` to the repository root.
-3. Go to **Settings → Pages**.
-4. Choose **Deploy from a branch**, branch `main`, folder `/(root)`, then Save.
-5. Wait for GitHub to show the published website URL.
-
-## Important
-This is a learning/demo project, not a production HR system. Data is stored only in the current browser and is not secure or shared between users. Do not enter real employee personal data, government IDs, or confidential salary information. Production use needs a secure backend, database, authentication, access controls, audit logs, backups, privacy safeguards, and validated Philippine payroll calculations.
+## 📂 Structure
