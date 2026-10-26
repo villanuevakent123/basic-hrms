@@ -18,8 +18,8 @@ input, select {
     border-radius: 6px; background: #0f172a; color: var(--text); font-size: 0.95rem;
 }
 label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
+code { background: #334155; padding: 2px 6px; border-radius: 4px; }
 
-/* Login Screen */
 .login-container {
     display: flex; align-items: center; justify-content: center;
     min-height: 100vh; padding: 20px;
@@ -31,7 +31,7 @@ label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9r
 .login-card h1 { text-align: center; margin-bottom: 8px; color: var(--primary); }
 .login-card > p { text-align: center; color: var(--muted); margin-bottom: 24px; }
 .login-hint { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
-.login-hint p { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; text-align: center; }
+.login-hint p { font-size: 0.9rem; color: var(--muted); margin-bottom: 12px; text-align: center; line-height: 1.6; }
 
 .btn { padding: 10px 18px; font-weight: 500; transition: transform 0.2s; }
 .btn:hover { transform: translateY(-1px); }
@@ -43,7 +43,6 @@ label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9r
 .form-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
 .form-group { flex: 1; min-width: 180px; margin-bottom: 16px; }
 
-/* Main App Layout */
 .app-container { display: flex; min-height: 100vh; }
 .sidebar {
     width: 260px; background: var(--bg-card); padding: 24px 16px;
@@ -85,9 +84,7 @@ th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--bo
 th { background: #1e293b; color: #cbd5e1; font-weight: 600; }
 tr:hover { background: #1e293b50; }
 
-/* Role-based visibility */
 .employee-view-only { display: none !important; }
-.admin-hidden { display: none !important; }
 .admin-col { display: table-cell; }
 body:not(.is-admin) .admin-only,
 body:not(.is-admin) .admin-section { display: none !important; }
