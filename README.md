@@ -1,26 +1,59 @@
 # Basic HRMS — Philippines Edition
-A lightweight, fully functional Human Resource Management System built with pure HTML, CSS, and JavaScript.
-Data saves automatically in your browser — no database setup needed to start!
+A lightweight, fully functional Human Resource Management System with **Admin & Employee Login System**.
+Built with pure HTML/CSS/JavaScript — no database server required to start.
+
+## 🔐 User Roles & Permissions
+
+| Feature | Admin | Employee |
+|---|---|---|
+| Dashboard Overview | ✅ Full | ✅ Own view |
+| Add/Edit/Delete Employees | ✅ Yes | ❌ No |
+| Create User Accounts | ✅ Yes | ❌ No |
+| Time In/Out (all employees) | ✅ Yes | ✅ Only yourself |
+| View Attendance | ✅ All | ✅ Only your records |
+| File Leave Request | ✅ For anyone | ✅ Only yourself |
+| Approve/Reject Leave | ✅ Yes | ❌ No |
+| Generate Payslips (all) | ✅ Yes | ❌ No |
+| View Your Payslip | ✅ Yes | ✅ Yes |
+| Export CSV Reports | ✅ Yes | ❌ No |
+| Manage User Accounts | ✅ Yes | ❌ No |
+
+### Default Admin
+- Username: `admin`
+- Password: `admin123`
+- ⚠️ **Change this after first login!**
 
 ## ✨ Features
-- 📊 **Dashboard** — quick overview of employees, leave status, payroll month
+- 🔑 **Secure Login System** — role-based access control
 - 👥 **Employee Management** — add, edit, delete, track status
-- ⏰ **Attendance** — Time In / Time Out logging
+- ⏰ **Attendance Logging** — Time In / Time Out
 - 📅 **Leave Management** — file requests, approve/reject workflow
-- 💰 **PH Payroll Calculator** — auto-computes SSS, PhilHealth, Pag-IBIG, Withholding Tax (2026 rates)
-- 📈 **Reports** — export to CSV
+- 💰 **PH Payroll Calculator** — SSS, PhilHealth, Pag-IBIG, Withholding Tax (2026 rates)
+- 📄 **Payslip Generation** — employee self-service view
+- 📊 **CSV Export Reports** — admin only
 - 📱 **Responsive Design** — works on phones, tablets, desktops
-- 💾 **Auto-Save** — all data persists in browser storage
+- 💾 **Auto-Save** — data persists in browser storage
 
 ## 🚀 Quick Start
-1. Download or clone this repo
+1. Clone or download this repo
 2. Open `index.html` in any modern browser
-3. Start adding employees — data saves automatically
+3. Sign in with default admin or create your own
+4. **Step 1:** Add your employees
+5. **Step 2:** Go to **User Accounts** → create employee accounts linked to their records
+6. Done! Employees can sign in and access their portal
 
-## 🧮 Payroll Formula Reference (PH 2026)
-- SSS: 4.5% employee share (capped at ₱30,000 base)
-- PhilHealth: 5% annual premium, split equally EE/ER
+## 🔗 How to Create Employee Accounts
+1. Login as Admin
+2. Go to **User Accounts** → **+ Create User Account**
+3. Enter username & password
+4. Select Role = **Employee**
+5. **Link to Employee Record** → select their name from the list
+6. Save — they can now login with limited access
+
+## 🧮 PH Payroll Formulas (2026)
+- SSS: 4.5% employee share (capped at ₱30,000)
+- PhilHealth: 5% annual premium, equally shared
 - Pag-IBIG: 2% capped at ₱200/month
-- Withholding Tax: BIR monthly graduated table
+- Withholding Tax: BIR graduated monthly table
 
 ## 📂 Structure
