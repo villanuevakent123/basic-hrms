@@ -8,15 +8,28 @@ const STORAGE = {
     accounts: JSON.parse(localStorage.getItem('hrms_accounts') || '[]'),
 
     initDefaultAdmin() {
-        if (this.accounts.length === 0) {
+        if (!this.accounts.some(a => a.role === 'admin')) {
             this.accounts.push({
                 username: 'admin',
                 password: 'admin123',
                 role: 'admin',
                 linkedEmpId: null
             });
-            this.save();
+            console.log('✅ Default admin created: admin / admin123');
         }
+    },
+
+    resetAdmin() {
+        this.accounts = this.accounts.filter(a => a.role !== 'admin');
+        this.accounts.unshift({
+            username: 'admin',
+            password: 'admin123',
+            role: 'admin',
+            linkedEmpId: null
+        });
+        this.save();
+        alert('✅ Admin reset! Username: admin | Password: admin123');
+        location.reload();
     },
 
     save() {
@@ -133,12 +146,15 @@ document.getElementById('login-form').addEventListener('submit', e => {
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
 
+    console.log('Attempting login:', username);
+    console.log('Available accounts:', STORAGE.accounts);
+
     const user = STORAGE.accounts.find(a => a.username === username && a.password === password);
     if (user) {
         SESSION.set(user);
         showApp();
     } else {
-        alert('Invalid username or password');
+        alert('❌ Invalid username or password\n\nTip: Click "Reset Admin Account" below if locked out.');
     }
     e.target.reset();
 });
@@ -150,7 +166,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 
 document.getElementById('create-admin-btn').addEventListener('click', () => {
     if (STORAGE.accounts.some(a => a.role === 'admin')) {
-        alert('Admin account already exists — please login first');
+        alert('⚠️ Admin account already exists — use "Reset Admin Account" instead.');
         return;
     }
     const user = prompt('Set Admin Username:');
@@ -159,7 +175,21 @@ document.getElementById('create-admin-btn').addEventListener('click', () => {
     if (!pass) return;
     STORAGE.accounts.push({ username: user.trim(), password: pass, role: 'admin', linkedEmpId: null });
     STORAGE.save();
-    alert('Admin account created! Please sign in.');
+    alert('✅ Admin created! Please sign in.');
+});
+
+// NEW: Reset Admin Button
+document.addEventListener('DOMContentLoaded', () => {
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'btn secondary full-width';
+    resetBtn.style.marginTop = '8px';
+    resetBtn.textContent = '🔧 Reset Admin Account';
+    resetBtn.onclick = () => {
+        if (confirm('Reset admin to: admin / admin123?')) {
+            STORAGE.resetAdmin();
+        }
+    };
+    document.querySelector('.login-hint').appendChild(resetBtn);
 });
 
 // =====================
@@ -186,7 +216,7 @@ function renderDashboard() {
 }
 
 // =====================
-// EMPLOYEE MANAGEMENT (Admin Only)
+// EMPLOYEE MANAGEMENT
 // =====================
 function renderEmpTable() {
     const tbody = document.getElementById('emp-table-body');
@@ -366,7 +396,7 @@ document.getElementById('leave-form').addEventListener('submit', e => {
     STORAGE.save();
     e.target.reset();
     renderLeave(); renderDashboard();
-    alert('Leave request submitted — waiting for approval');
+    alert('✅ Leave request submitted — waiting for approval');
 });
 
 // =====================
@@ -379,7 +409,7 @@ function showPayslip(emp, payPeriod) {
     slip.innerHTML = `
         <h3>Payslip — ${escapeHtml(payPeriod)}</h3>
         <p><strong>Employee:</strong> ${escapeHtml(emp.name)} (${escapeHtml(emp.id)}) — ${escapeHtml(emp.position)}</p>
-        <hr style="border:0; border-top:1px solid ${PH_RATES.border || '#334155'}; margin:12px 0;">
+        <hr style="border:0; border-top:1px solid #334155; margin:12px 0;">
         <div class="row"><span>Basic Monthly Salary</span><span>${currency(result.basic)}</span></div>
         <div class="row"><span>Daily Rate</span><span>${currency(result.dailyRate)}</span></div>
         <div class="row"><span>Days Worked</span><span>${result.daysWorked}</span></div>
@@ -413,7 +443,7 @@ document.getElementById('emp-view-payslip-btn')?.addEventListener('click', () =>
 });
 
 // =====================
-// USER ACCOUNTS (Admin Only)
+// USER ACCOUNTS
 // =====================
 function renderAccountsTable() {
     const tbody = document.getElementById('accounts-table-body');
@@ -467,10 +497,10 @@ document.getElementById('account-form').addEventListener('submit', e => {
     const linkedEmpId = document.getElementById('link-emp-id').value || null;
 
     if (idx === '' && STORAGE.accounts.some(a => a.username === username)) {
-        return alert('Username already exists');
+        return alert('❌ Username already exists');
     }
     if (idx !== '' && STORAGE.accounts.some((a, i) => i !== parseInt(idx) && a.username === username)) {
-        return alert('Username already taken');
+        return alert('❌ Username already taken');
     }
 
     const accData = {
@@ -479,7 +509,7 @@ document.getElementById('account-form').addEventListener('submit', e => {
         role,
         linkedEmpId
     };
-    if (!accData.password) return alert('Password is required');
+    if (!accData.password) return alert('❌ Password is required');
 
     if (idx === '') STORAGE.accounts.push(accData);
     else STORAGE.accounts[parseInt(idx)] = accData;
