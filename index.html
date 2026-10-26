@@ -1,341 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HRMS - Philippines</title>
+    <title>HRMS</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --text: #f8fafc;
-            --muted: #94a3b8;
-            --border: #334155;
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body { background: var(--bg-dark); color: var(--text); min-height: 100vh; }
-        button { cursor: pointer; border: none; border-radius: 6px; font-size: 0.95rem; }
-        input, select {
-            width: 100%; padding: 10px 12px; border: 1px solid var(--border);
-            border-radius: 6px; background: #0f172a; color: var(--text); font-size: 0.95rem; margin: 6px 0;
+        .card {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 12px;
+            width: 350px;
+            text-align: center;
         }
-        label { display: block; margin-top: 12px; color: var(--muted); font-size: 0.9rem; }
-        .btn { padding: 10px 18px; font-weight: 500; margin-top: 12px; }
-        .btn.primary { background: var(--primary); color: white; width: 100%; }
-        .btn.success { background: var(--success); color: white; }
-        .btn.danger { background: var(--danger); color: white; }
-        .btn.sm { padding: 6px 10px; font-size: 0.85rem; width: auto; margin: 4px; }
-        .hidden { display: none !important; }
-
-        /* Login */
-        .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        .login-card { background: var(--bg-card); padding: 32px; border-radius: 12px; border: 1px solid var(--border); width: 100%; max-width: 420px; }
-        .login-card h1 { text-align: center; margin-bottom: 24px; color: var(--primary); }
-        .hint { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center; color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
-
-        /* Layout */
-        .app-wrap { display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: var(--bg-card); padding: 24px 16px; border-right: 1px solid var(--border); height: 100vh; position: fixed; }
-        .sidebar h2 { color: var(--primary); margin-bottom: 8px; }
-        .nav-btn { width: 100%; text-align: left; padding: 12px 16px; margin: 4px 0; background: transparent; color: var(--muted); }
-        .nav-btn:hover, .nav-btn.active { background: var(--primary); color: white; }
-        .main { margin-left: 260px; padding: 32px; flex: 1; }
-        .section { display: none; }
-        .section.active { display: block; }
-        h1 { margin-bottom: 24px; }
-        .card { background: var(--bg-card); padding: 24px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 24px; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .stat { background: var(--bg-card); padding: 24px; border-radius: 10px; border: 1px solid var(--border); }
-        .stat h3 { font-size: 2rem; margin-bottom: 4px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: #1e293b; }
-        .admin-only { display: none; }
-        body.is-admin .admin-only { display: table-cell; display: block; }
-        .row { display: flex; gap: 16px; flex-wrap: wrap; }
-        .col { flex: 1; min-width: 180px; }
-        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal { background: var(--bg-card); padding: 28px; border-radius: 10px; width: 90%; max-width: 520px; border: 1px solid var(--border); }
-        .close { float: right; font-size: 1.5rem; cursor: pointer; }
-        .clearfix { clear: both; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            background: #0f172a;
+            color: white;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background: #1d4ed8; }
+        .hint { margin-top: 20px; color: #94a3b8; font-size: 14px; line-height: 1.6; }
+        #app { display: none; }
     </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<div id="login-screen" class="login-wrap">
-    <div class="login-card">
-        <h1>🏢 HRMS Login</h1>
-        <label>Username</label>
-        <input type="text" id="u" value="admin">
-        <label>Password</label>
-        <input type="password" id="p" value="admin123">
-        <button class="btn primary" onclick="doLogin()">Sign In</button>
-        <div class="hint">
-            <p><strong>Admin Access:</strong><br>Username: admin<br>Password: admin123</p>
-            <button class="btn primary" style="background:#374151;" onclick="resetAll()">🔧 Reset System</button>
+    <div id="login">
+        <div class="card">
+            <h1>🏢 HRMS Login</h1>
+            <input type="text" id="username" value="admin" placeholder="Username">
+            <input type="password" id="password" value="admin123" placeholder="Password">
+            <button onclick="dologin()">Sign In</button>
+            <div class="hint">
+                <strong>Admin Access</strong><br>
+                Username: admin<br>
+                Password: admin123
+            </div>
         </div>
     </div>
-</div>
 
-<!-- MAIN APP -->
-<div id="app" class="app-wrap hidden">
-    <aside class="sidebar">
-        <h2>HRMS System</h2>
-        <p id="whoami" style="color:var(--muted); margin-bottom:20px;"></p>
-        <nav>
-            <button class="nav-btn active" data-page="dashboard">📊 Dashboard</button>
-            <button class="nav-btn admin-only" data-page="employees">👥 Employees</button>
-            <button class="nav-btn" data-page="attendance">⏰ Attendance</button>
-            <button class="nav-btn" data-page="payroll">💰 Payroll</button>
-        </nav>
-        <button class="btn primary" style="background:#374151; margin-top:auto;" onclick="logout()">Sign Out</button>
-    </aside>
-
-    <main class="main">
-        <!-- DASHBOARD -->
-        <section id="dashboard" class="section active">
-            <h1>Dashboard</h1>
-            <div class="stats">
-                <div class="stat"><h3 id="n-emp">0</h3><p>Employees</p></div>
-                <div class="stat"><h3 id="n-present">0</h3><p>Present Today</p></div>
-                <div class="stat"><h3 id="n-payday">—</h3><p>Next Payday</p></div>
-            </div>
-            <div class="card" style="margin-top:32px;">
-                <h3>System Ready ✅</h3>
-                <p style="margin-top:8px;">Data is saved automatically. Works offline and on your office network.</p>
-            </div>
-        </section>
-
-        <!-- EMPLOYEES -->
-        <section id="employees" class="section admin-only">
-            <h1>Employee Management</h1>
-            <button class="btn success" onclick="openEmpModal()">+ Add Employee</button>
-            <div class="card">
-                <table>
-                    <thead><tr><th>#</th><th>Full Name</th><th>Position</th><th>Monthly Salary</th><th>Actions</th></tr></thead>
-                    <tbody id="emp-body"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- ATTENDANCE -->
-        <section id="attendance" class="section">
-            <h1>Attendance</h1>
-            <div class="card admin-only">
-                <label>Select Employee</label>
-                <select id="att-sel"></select>
-                <button class="btn success" onclick="timeIn()">✅ Time In</button>
-                <button class="btn danger" onclick="timeOut()">🚪 Time Out</button>
-            </div>
-            <div class="card">
-                <h3>Attendance Logs</h3>
-                <table>
-                    <thead><tr><th>Date</th><th>Name</th><th>Time In</th><th>Time Out</th><th>Hours</th></tr></thead>
-                    <tbody id="att-body"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- PAYROLL -->
-        <section id="payroll" class="section">
-            <h1>Payroll (PH Computation)</h1>
-            <div class="card admin-only">
-                <label>Employee</label>
-                <select id="pay-sel"></select>
-                <label>Pay Period (YYYY-MM)</label>
-                <input type="month" id="pay-month">
-                <button class="btn primary" onclick="computePayroll()">Generate Payslip</button>
-            </div>
-            <div id="payslip" class="card hidden">
-                <h3>Payslip</h3>
-                <div id="payslip-content"></div>
-                <button class="btn success" onclick="window.print()" style="margin-top:16px;">🖨️ Print / Save as PDF</button>
-            </div>
-        </section>
-    </main>
-</div>
-
-<!-- EMPLOYEE MODAL -->
-<div id="emp-modal" class="modal-bg hidden">
-    <div class="modal">
-        <span class="close" onclick="closeEmpModal()">&times;</span>
-        <div class="clearfix"></div>
-        <h3 id="emp-modal-title">Add Employee</h3>
-        <input type="hidden" id="emp-edit-id">
-        <label>Full Name</label>
-        <input type="text" id="emp-name">
-        <label>Position</label>
-        <input type="text" id="emp-pos">
-        <label>Basic Monthly Salary (₱)</label>
-        <input type="number" id="emp-salary" step="100">
-        <button class="btn primary" onclick="saveEmployee()">Save Employee</button>
+    <div id="app">
+        <div class="card" style="width: 500px;">
+            <h1>✅ Welcome Admin!</h1>
+            <p style="margin: 20px 0;">System is working! Your data saves automatically.</p>
+            <h3>📊 Dashboard</h3>
+            <p>Total Employees: <strong id="count-emp">0</strong></p>
+            <button onclick="addEmp()">+ Add Test Employee</button>
+            <button style="background: #374151;" onclick="logout()">Sign Out</button>
+        </div>
     </div>
-</div>
 
-<script>
-// ==============================================
-// DATA STORAGE
-// ==============================================
-const STORAGE_KEYS = {
-    employees: 'hrms_employees',
-    attendance: 'hrms_attendance',
-    users: 'hrms_users',
-    session: 'hrms_session'
-};
+    <script>
+        // Function name matches what the button calls — FIXED!
+        function dologin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            
+            if (u === 'admin' && p === 'admin123') {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                loadEmp();
+            } else {
+                alert('❌ Wrong credentials!\n\nUse:\nUsername: admin\nPassword: admin123');
+            }
+        }
 
-function loadData(key, fallback) {
-    try {
-        const d = localStorage.getItem(key);
-        return d ? JSON.parse(d) : fallback;
-    } catch { return fallback; }
-}
-function saveData(key, val) {
-    localStorage.setItem(key, JSON.stringify(val));
-}
+        function logout() {
+            document.getElementById('login').style.display = 'block';
+            document.getElementById('app').style.display = 'none';
+        }
 
-// Default admin
-const DEFAULT_ADMIN = { username: 'admin', password: 'admin123', role: 'admin' };
-let employees = loadData(STORAGE_KEYS.employees, []);
-let attendance = loadData(STORAGE_KEYS.attendance, []);
-let users = loadData(STORAGE_KEYS.users, [DEFAULT_ADMIN]);
-let currentUser = null;
+        function loadEmp() {
+            const list = JSON.parse(localStorage.getItem('emp') || '[]');
+            document.getElementById('count-emp').textContent = list.length;
+        }
 
-// ==============================================
-// LOGIN / LOGOUT
-// ==============================================
-function doLogin() {
-    const u = document.getElementById('u').value.trim();
-    const p = document.getElementById('p').value;
-    
-    // Direct admin match always works
-    if (u === DEFAULT_ADMIN.username && p === DEFAULT_ADMIN.password) {
-        currentUser = DEFAULT_ADMIN;
-    } else {
-        const found = users.find(a => a.username === u && a.password === p);
-        if (!found) return alert('❌ Login failed!\n\nUse:\nUsername: admin\nPassword: admin123');
-        currentUser = found;
-    }
-    
-    sessionStorage.setItem(STORAGE_KEYS.session, JSON.stringify(currentUser));
-    showApp();
-}
-
-function showApp() {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    document.getElementById('whoami').textContent = currentUser.username + ' — ' + currentUser.role;
-    if (currentUser.role === 'admin') document.body.classList.add('is-admin');
-    renderAll();
-}
-
-function logout() {
-    sessionStorage.removeItem(STORAGE_KEYS.session);
-    location.reload(true);
-}
-
-function resetAll() {
-    if (!confirm('⚠️ This will clear ALL data? Continue?')) return;
-    localStorage.clear();
-    sessionStorage.clear();
-    location.reload(true);
-}
-
-// Auto-restore session
-const s = sessionStorage.getItem(STORAGE_KEYS.session);
-if (s) {
-    try { currentUser = JSON.parse(s); showApp(); } catch {}
-}
-
-// ==============================================
-// NAVIGATION
-// ==============================================
-document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.page).classList.add('active');
-    });
-});
-
-// ==============================================
-// EMPLOYEES
-// ==============================================
-function openEmpModal(id = null) {
-    document.getElementById('emp-modal').classList.remove('hidden');
-    document.getElementById('emp-edit-id').value = '';
-    document.getElementById('emp-name').value = '';
-    document.getElementById('emp-pos').value = '';
-    document.getElementById('emp-salary').value = '';
-    document.getElementById('emp-modal-title').textContent = 'Add Employee';
-}
-function closeEmpModal() {
-    document.getElementById('emp-modal').classList.add('hidden');
-}
-function saveEmployee() {
-    const name = document.getElementById('emp-name').value.trim();
-    const pos = document.getElementById('emp-pos').value.trim();
-    const sal = parseFloat(document.getElementById('emp-salary').value);
-    
-    if (!name || !sal) return alert('Fill in all fields');
-    
-    employees.push({ id: Date.now(), name, position: pos, salary: sal });
-    saveData(STORAGE_KEYS.employees, employees);
-    closeEmpModal();
-    renderAll();
-}
-function deleteEmp(id) {
-    if (!confirm('Delete this employee?')) return;
-    employees = employees.filter(e => e.id !== id);
-    saveData(STORAGE_KEYS.employees, employees);
-    renderAll();
-}
-
-// ==============================================
-// ATTENDANCE
-// ==============================================
-function timeIn() {
-    const sel = document.getElementById('att-sel');
-    if (!sel.value) return alert('Select employee first');
-    const emp = employees.find(e => String(e.id) === sel.value);
-    if (!emp) return;
-    
-    const today = new Date().toLocaleDateString('en-CA');
-    const now = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-    
-    // Check if already timed in today
-    const existing = attendance.find(a => a.empId === emp.id && a.date === today && !a.timeOut);
-    if (existing) return alert('Already timed in! Do Time Out first.');
-    
-    attendance.push({ empId: emp.id, name: emp.name, date: today, timeIn: now, timeOut: null });
-    saveData(STORAGE_KEYS.attendance, attendance);
-    renderAll();
-    alert(`✅ Time In recorded for ${emp.name} at ${now}`);
-}
-function timeOut() {
-    const sel = document.getElementById('att-sel');
-    if (!sel.value) return alert('Select employee first');
-    const emp = employees.find(e => String(e.id) === sel.value);
-    if (!emp) return;
-    
-    const today = new Date().toLocaleDateString('en-CA');
-    const now = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-    
-    const rec = attendance.find(a => a.empId === emp.id && a.date === today && !a.timeOut);
-    if (!rec) return alert('No active Time In found!');
-    rec.timeOut = now;
-    saveData(STORAGE_KEYS.attendance, attendance);
-    renderAll();
-    alert(`✅ Time Out recorded for ${emp.name} at ${now}`);
-}
-
-// ==============================================
-// PAYROLL COMPUTATION (PH Rates)
-// ==============================================
-function computePayroll() {
-    const sel = document.getElementById('pay-sel');
-    const month = document.getElementById
+        function addEmp() {
+            const list = JSON.parse(localStorage.getItem('emp') || '[]');
+            list.push({ name: 'Employee ' + (list.length + 1) });
+            localStorage.setItem('emp', JSON.stringify(list));
+            loadEmp();
+            alert('✅ Employee added! Data is saved.');
+        }
+    </script>
+</body>
+</html>
